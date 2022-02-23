@@ -40,6 +40,18 @@ enum GetNameInfoFlags
 /**
  * Error codes from GetHostByName and GetHostByAddr
  */
+#if defined(HOST_SERENITY)
+enum GetHostErrorCodes
+{
+    GetHostErrorCodes_HOST_NOT_FOUND = 101,
+    GetHostErrorCodes_TRY_AGAIN = 104,
+    GetHostErrorCodes_NO_RECOVERY = 103,
+    GetHostErrorCodes_NO_DATA = 102,
+    GetHostErrorCodes_NO_ADDRESS = GetHostErrorCodes_NO_DATA,
+    GetHostErrorCodes_BAD_ARG = 105,
+    GetHostErrorCodes_NO_MEM = 106,
+};
+#else
 enum GetHostErrorCodes
 {
     GetHostErrorCodes_HOST_NOT_FOUND = 1,
@@ -50,6 +62,7 @@ enum GetHostErrorCodes
     GetHostErrorCodes_BAD_ARG = 5,
     GetHostErrorCodes_NO_MEM = 6,
 };
+#endif
 
 /**
  * Address families recognized by {Get,Set}AddressFamily.

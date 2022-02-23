@@ -24,6 +24,11 @@
 #include <fcntl.h>
 #endif
 
+#if defined (HOST_SERENITY)
+#undef HAVE_SCHED_SETAFFINITY
+#undef HAVE_SCHED_GETAFFINITY
+#endif
+
 #if HAVE_SCHED_SETAFFINITY || HAVE_SCHED_GETAFFINITY
 #include <sched.h>
 #endif

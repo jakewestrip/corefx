@@ -252,8 +252,10 @@ static int32_t ConvertOpenFlags(int32_t flags)
         ret |= O_EXCL;
     if (flags & PAL_O_TRUNC)
         ret |= O_TRUNC;
+#ifndef HOST_SERENITY
     if (flags & PAL_O_SYNC)
         ret |= O_SYNC;
+#endif
 
     assert(ret != -1);
     return ret;

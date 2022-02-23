@@ -113,7 +113,11 @@ struct in_pktinfo
 {
     struct in_addr ipi_addr;
 };
+#ifdef HOST_SERENITY
+#define IP_PKTINFO 16
+#else
 #define IP_PKTINFO IP_RECVDSTADDR
+#endif
 #endif
 
 #if !defined(IPV6_ADD_MEMBERSHIP) && defined(IPV6_JOIN_GROUP)
@@ -142,7 +146,11 @@ c_static_assert(GetHostErrorCodes_HOST_NOT_FOUND == HOST_NOT_FOUND);
 c_static_assert(GetHostErrorCodes_TRY_AGAIN == TRY_AGAIN);
 c_static_assert(GetHostErrorCodes_NO_RECOVERY == NO_RECOVERY);
 c_static_assert(GetHostErrorCodes_NO_DATA == NO_DATA);
+#ifdef HOST_SERENITY
+c_static_assert(GetHostErrorCodes_NO_ADDRESS == NO_DATA);
+#else
 c_static_assert(GetHostErrorCodes_NO_ADDRESS == NO_ADDRESS);
+#endif
 c_static_assert(sizeof(uint8_t) == sizeof(char)); // We make casts from uint8_t to char so make sure it's legal
 
 // We require that IOVector have the same layout as iovec.
@@ -359,6 +367,8 @@ int32_t SystemNative_GetNameInfo(const uint8_t* address,
 
     NativeFlagsType nativeFlags = ConvertGetNameInfoFlagsToNative(flags);
     int32_t result;
+
+    printf("SystemNative_GetNameInfo({}, {}, {}, {}, {}, {}, {}, {})\n", address, addressLength, isIPv6, host, hostLength, service, serviceLength, flags);
 
     if (isIPv6)
     {
@@ -754,6 +764,9 @@ static void ConvertMessageHeaderToMsghdr(struct msghdr* header, const struct Mes
     // We avoid this for stream sockets by truncating msg_iovlen to IOV_MAX. This is ok since sendmsg is
     // not required to send all data and recvmsg can be called again to receive more.
     int iovlen = (int)messageHeader->IOVectorCount;
+#ifdef HOST_SERENITY
+#define IOV_MAX 1024
+#endif
     if (iovlen > IOV_MAX && IsStreamSocket(socket))
     {
         iovlen = (int)IOV_MAX;
@@ -772,7 +785,11 @@ int32_t SystemNative_GetControlMessageBufferSize(int32_t isIPv4, int32_t isIPv6)
     // Note: it is possible that the address family of the socket is neither
     //       AF_INET nor AF_INET6. In this case both inputs will be 0 and
     //       the controll message buffer size should be zero.
+#ifdef HOST_SERENITY
+    return (isIPv4 != 0 ? CMSG_SPACE(sizeof(struct in_pktinfo)) : 0);
+#else
     return (isIPv4 != 0 ? CMSG_SPACE(sizeof(struct in_pktinfo)) : 0) + (isIPv6 != 0 ? CMSG_SPACE(sizeof(struct in6_pktinfo)) : 0);
+#endif
 }
 
 static int32_t GetIPv4PacketInformation(struct cmsghdr* controlMessage, struct IPPacketInformation* packetInfo)
@@ -1520,6 +1537,7 @@ static bool TryGetPlatformSocketOption(int32_t socketOptionName, int32_t socketO
                     *optName = SO_RCVBUF;
                     return true;
 
+#ifndef HOST_SERENITY
                 case SocketOptionName_SO_SNDLOWAT:
                     *optName = SO_SNDLOWAT;
                     return true;
@@ -1527,6 +1545,7 @@ static bool TryGetPlatformSocketOption(int32_t socketOptionName, int32_t socketO
                 case SocketOptionName_SO_RCVLOWAT:
                     *optName = SO_RCVLOWAT;
                     return true;
+#endif
 
                 case SocketOptionName_SO_SNDTIMEO:
                     *optName = SO_SNDTIMEO;
@@ -1559,9 +1578,11 @@ static bool TryGetPlatformSocketOption(int32_t socketOptionName, int32_t socketO
                     *optName = IP_OPTIONS;
                     return true;
 
+#ifndef HOST_SERENITY
                 case SocketOptionName_SO_IP_HDRINCL:
                     *optName = IP_HDRINCL;
                     return true;
+#endif
 
                 case SocketOptionName_SO_IP_TOS:
                     *optName = IP_TOS;

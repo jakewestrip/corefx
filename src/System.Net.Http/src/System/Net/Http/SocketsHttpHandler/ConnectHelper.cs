@@ -81,9 +81,12 @@ namespace System.Net.Http
             }
             catch (Exception error)
             {
-                throw CancellationHelper.ShouldWrapInOperationCanceledException(error, cancellationToken) ?
-                    CancellationHelper.CreateOperationCanceledException(error, cancellationToken) :
-                    new HttpRequestException(error.Message, error);
+                Console.WriteLine(error.Message);
+                Console.WriteLine(error.StackTrace);
+                throw new Exception("dun goofed");
+                //throw CancellationHelper.ShouldWrapInOperationCanceledException(error, cancellationToken) ?
+                //    CancellationHelper.CreateOperationCanceledException(error, cancellationToken) :
+                //    new HttpRequestException(error.Message, error);
             }
             finally
             {

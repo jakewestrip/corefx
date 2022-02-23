@@ -181,6 +181,15 @@ enum NodeType
 /**
  * Constants from sys/file.h for lock types
  */
+#if defined(HOST_SERENITY)
+enum LockOperations
+{
+    PAL_LOCK_SH = 0, /* shared lock */
+    PAL_LOCK_EX = 1, /* exclusive lock */
+    PAL_LOCK_NB = (1 << 2), /* don't block when locking*/
+    PAL_LOCK_UN = 2, /* unlock */
+};
+#else
 enum LockOperations
 {
     PAL_LOCK_SH = 1, /* shared lock */
@@ -188,6 +197,7 @@ enum LockOperations
     PAL_LOCK_NB = 4, /* don't block when locking*/
     PAL_LOCK_UN = 8, /* unlock */
 };
+#endif
 
 /**
  * Constants for changing the access permissions of a path

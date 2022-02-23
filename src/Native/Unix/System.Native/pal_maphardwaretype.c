@@ -8,9 +8,15 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#if defined(HOST_SERENITY)
+#define AF_PACKET
+#endif
+
 #if defined(AF_PACKET)
 #if defined(_WASM_)
 #include <netpacket/packet.h>
+#include <net/if_arp.h>
+#elif defined(HOST_SERENITY)
 #include <net/if_arp.h>
 #else // _WASM_
 #include <linux/if_packet.h>
@@ -26,6 +32,26 @@
 uint16_t MapHardwareType(uint16_t nativeType)
 {
 #if defined(AF_PACKET)
+    #if defined(HOST_SERENITY)
+    switch (nativeType)
+    {
+        case ARPHRD_ETHER:
+            return NetworkInterfaceType_Ethernet;
+        case ARPHRD_SLIP:
+            return NetworkInterfaceType_Slip;
+        case ARPHRD_PPP:
+            return NetworkInterfaceType_Ppp;
+        case ARPHRD_LOOPBACK:
+            return NetworkInterfaceType_Loopback;
+        case ARPHRD_FDDI:
+            return NetworkInterfaceType_Fddi;
+        case ARPHRD_IEEE802:
+        case ARPHRD_IEEE802_TR:
+            return NetworkInterfaceType_Wireless80211;
+        default:
+            return NetworkInterfaceType_Unknown;
+    }
+    #else
     switch (nativeType)
     {
         case ARPHRD_ETHER:
@@ -56,6 +82,7 @@ uint16_t MapHardwareType(uint16_t nativeType)
         default:
             return NetworkInterfaceType_Unknown;
     }
+    #endif
 #elif defined(AF_LINK)
     switch (nativeType)
     {
